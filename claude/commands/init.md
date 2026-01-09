@@ -14,7 +14,7 @@ Execute the following steps to set up the toolkit in your project:
 ### 1. Clone the toolkit repository
 
 ```bash
-git clone https://github.com/croffasia/cc-blueprint-toolkit.git /tmp/cc-blueprint-toolkit-temp
+git clone https://github.com/Leeaandrob/cc-blueprint-toolkit.git /tmp/cc-blueprint-toolkit-temp
 ```
 
 ### 2. Create documentation directories
