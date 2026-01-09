@@ -99,10 +99,19 @@ This will automatically install documentation templates to your project, enablin
 - Breaks down into technical tasks → `docs/tasks/feature-name.md`
 
 ### 3. **Execute the Plan** (`/bp:execute-prp`)
+- **NEW: TDD E2E Workflow** - Tests first, then implementation
 - Follows your patterns exactly
 - Writes production-ready code
-- Runs tests and linting
+- Generates comprehensive architecture documentation
 - Validates everything works
+
+#### TDD E2E Workflow (State of the Art)
+```
+🔴 RED      → Generate failing E2E tests from acceptance criteria
+🟢 GREEN   → Implement minimum code to pass tests
+🔵 REFACTOR → Improve code quality while tests stay green
+📚 DOCUMENT → Generate architecture docs (ADRs, C4, ERD, Sequence)
+```
 
 ### 4. **Execute Tasks** (`/bp:execute-task`)
 - Breaks down complex features into manageable tasks
@@ -130,6 +139,36 @@ Skip brainstorming when you have clear requirements:
 
 > **Pro Tip**: Use `/bp:execute-task` for higher quality first-pass implementations on complex features
 
+## 🧪 TDD E2E Testing Support
+
+Automatic E2E test generation for multiple stacks:
+
+| Stack | Test Framework | Template |
+|-------|---------------|----------|
+| **Backend Node** | Supertest + Jest | `node-supertest.template.md` |
+| **Frontend Web** | Playwright | `playwright.template.md` |
+| **Backend Python** | pytest + httpx | `python-pytest.template.md` |
+| **Mobile React Native** | Detox + Jest | `detox.template.md` |
+| **Golang** | go test | `golang.template.md` |
+| **Full-Stack** | Playwright | `playwright.template.md` |
+
+## 📐 Architecture Documentation
+
+Auto-generated documentation during `execute-prp`:
+
+| Document Type | Format | Description |
+|--------------|--------|-------------|
+| **ADRs** | Markdown | Architecture Decision Records (MADR format) |
+| **C4 Context** | Mermaid | System context diagram |
+| **C4 Container** | Mermaid | Container architecture |
+| **C4 Component** | Mermaid | Component details |
+| **Data Flow** | Mermaid | Data flow diagrams |
+| **ERD** | Mermaid | Entity Relationship Diagrams |
+| **Sequence** | Mermaid | Interaction sequences |
+| **OpenAPI** | YAML | API specification (3.0.3) |
+
+All diagrams use **Mermaid** format for native GitHub/GitLab rendering.
+
 ## 💎 What You Get
 
 ### ⚙️ Works With Everything
@@ -149,11 +188,28 @@ Skip brainstorming when you have clear requirements:
 
 ```
 📦 cc-blueprint-toolkit/
-├── claude/agents/            # Smart research agents
-├── claude/commands/          # Claude Code Commands
-├── docs/templates/           # Templates
-└── docs/                     # Documentation & guides
-    └── vibe-coding-guide.md  # 10 essential tips for AI-powered development
+├── claude/agents/                    # Smart research agents
+│   ├── tdd-e2e-generator.md          # TDD E2E test generator
+│   └── architecture-docs-generator.md # Architecture docs generator
+├── claude/commands/                  # Claude Code Commands
+├── docs/templates/                   # Templates
+│   ├── e2e-tests/                    # E2E test templates (5 stacks)
+│   │   ├── node-supertest.template.md
+│   │   ├── playwright.template.md
+│   │   ├── python-pytest.template.md
+│   │   ├── detox.template.md
+│   │   └── golang.template.md
+│   └── architecture/                 # Architecture doc templates
+│       ├── adr.template.md
+│       ├── c4-context.template.md
+│       ├── c4-container.template.md
+│       ├── c4-component.template.md
+│       ├── data-flow.template.md
+│       ├── erd.template.md
+│       ├── sequence.template.md
+│       └── openapi.template.yaml
+└── docs/                             # Documentation & guides
+    └── vibe-coding-guide.md          # 10 essential tips for AI-powered development
 ```
 
 ## 🎯 Perfect For
