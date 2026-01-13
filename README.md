@@ -113,6 +113,44 @@ This will automatically install documentation templates to your project, enablin
 📚 DOCUMENT → Generate architecture docs (ADRs, C4, ERD, Sequence)
 ```
 
+#### Ralph-Enhanced Reliability Patterns (v2)
+
+The `execute-prp` command now includes production-grade reliability patterns inspired by [Ralph for Claude Code](https://github.com/anthropics/ralph-claude-code):
+
+| Pattern | Purpose | Protection |
+|---------|---------|------------|
+| **Circuit Breaker** | Prevents infinite loops | 3-state machine (CLOSED → HALF_OPEN → OPEN) halts after no-progress iterations |
+| **Dual-Gate Exit** | Requires 2 conditions before phase exit | Gate 1: Objective metrics + Gate 2: Explicit signal |
+| **Metrics Tracking** | Quantitative progress detection | Phase-specific metrics (tests_passing, files_created, etc.) |
+| **Session Persistence** | Resume capability | State saved in `.prp-session/` directory |
+
+**Phase-Specific Thresholds:**
+
+| Phase | No-Progress Threshold | Reason |
+|-------|----------------------|--------|
+| RED | 3 | Standard - test generation |
+| GREEN | **2** | **Stricter** - highest loop risk |
+| REFACTOR | 5 | Lenient - iterative by nature |
+| DOCUMENT | 3 | Standard - doc generation |
+
+**Status Block Output:**
+Every significant action emits a structured `PRP_PHASE_STATUS` block for observability:
+```
+---PRP_PHASE_STATUS---
+PHASE: GREEN
+STATUS: IN_PROGRESS
+ITERATION: 5
+PROGRESS_PERCENT: 60
+TESTS:
+  PASSING: 6
+  FAILING: 4
+CIRCUIT_BREAKER:
+  STATE: CLOSED
+DUAL_GATE:
+  CAN_EXIT: false
+---END_PRP_PHASE_STATUS---
+```
+
 ### 4. **Execute Tasks** (`/bp:execute-task`)
 - Breaks down complex features into manageable tasks
 - Executes task-by-task with validation
@@ -190,8 +228,19 @@ All diagrams use **Mermaid** format for native GitHub/GitLab rendering.
 📦 cc-blueprint-toolkit/
 ├── claude/agents/                    # Smart research agents
 │   ├── tdd-e2e-generator.md          # TDD E2E test generator
-│   └── architecture-docs-generator.md # Architecture docs generator
+│   ├── architecture-docs-generator.md # Architecture docs generator
+│   └── phase-monitor.md              # Ralph pattern monitoring agent
+├── claude/lib/                       # Specification documents
+│   ├── circuit-breaker-spec.md       # Circuit Breaker state machine
+│   ├── dual-gate-spec.md             # Dual-Gate exit conditions
+│   ├── status-block-spec.md          # PRP_PHASE_STATUS format
+│   └── metrics-spec.md               # Progress metrics tracking
 ├── claude/commands/                  # Claude Code Commands
+├── tests/bats/                       # BATS test suite
+│   ├── test_helper.bash              # Test helper functions
+│   ├── circuit_breaker.bats          # Circuit Breaker tests
+│   ├── dual_gate.bats                # Dual-Gate tests
+│   └── execute_prp_e2e.bats          # E2E workflow tests
 ├── docs/templates/                   # Templates
 │   ├── e2e-tests/                    # E2E test templates (5 stacks)
 │   │   ├── node-supertest.template.md

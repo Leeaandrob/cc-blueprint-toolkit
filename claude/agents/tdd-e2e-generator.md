@@ -344,7 +344,62 @@ After generating tests, provide:
 - Expected output: All tests should FAIL
 - Confirmation that RED state is achieved
 
-### 4. Next Steps
+### 4. Emit PRP_PHASE_STATUS Block
+
+**CRITICAL**: After completing test generation and verification, you MUST emit a structured status block.
+
+```
+---PRP_PHASE_STATUS---
+TIMESTAMP: [current ISO-8601 timestamp]
+PHASE: RED
+STATUS: [IN_PROGRESS if tests not verified, COMPLETE if RED state confirmed]
+ITERATION: 1
+PROGRESS_PERCENT: [based on criteria coverage]
+
+TESTS:
+  TOTAL: [number of tests generated]
+  PASSING: 0
+  FAILING: [number of tests - should equal TOTAL]
+  SKIPPED: 0
+
+FILES:
+  CREATED: [number of test files created]
+  MODIFIED: 0
+  DELETED: 0
+
+CIRCUIT_BREAKER:
+  STATE: CLOSED
+  NO_PROGRESS_COUNT: 0
+
+DUAL_GATE:
+  GATE_1: [true if tests_generated >= criteria_count AND all failing]
+  GATE_2: [true if RED state verified]
+  CAN_EXIT: [GATE_1 AND GATE_2]
+
+BLOCKERS:
+  - [any blockers or "none"]
+
+EXIT_SIGNAL: [true if RED phase complete, false otherwise]
+RECOMMENDATION: [next action - proceed to GREEN or continue RED]
+---END_PRP_PHASE_STATUS---
+```
+
+### 5. Metrics Report
+
+Provide metrics for phase-monitor:
+
+```yaml
+RED_PHASE_METRICS:
+  tests_generated: [count]
+  tests_failing: [count - should equal tests_generated]
+  criteria_count: [from PRP]
+  criteria_covered: [count with tests]
+  stack_detected: [Node/Python/Go/Web/Mobile/Full-Stack]
+  framework_used: [test framework name]
+  test_file_path: [path to generated test file]
+```
+
+### 6. Next Steps
 
 Inform that the next phase is GREEN - implementing code to make tests pass.
 

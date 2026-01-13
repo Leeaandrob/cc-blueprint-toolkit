@@ -501,7 +501,64 @@ After generating documentation, provide:
 - [Decision 1]: [Brief summary]
 - [Decision 2]: [Brief summary]
 
-### 3. TDD Workflow Completion
+### 3. Emit PRP_PHASE_STATUS Block
+
+**CRITICAL**: After completing documentation generation, you MUST emit a structured status block.
+
+```
+---PRP_PHASE_STATUS---
+TIMESTAMP: [current ISO-8601 timestamp]
+PHASE: DOCUMENT
+STATUS: [IN_PROGRESS while generating, COMPLETE when done]
+ITERATION: 1
+PROGRESS_PERCENT: [based on docs generated vs required]
+
+TESTS:
+  TOTAL: [from previous phases]
+  PASSING: [from previous phases]
+  FAILING: 0
+  SKIPPED: 0
+
+FILES:
+  CREATED: [number of doc files created]
+  MODIFIED: 0
+  DELETED: 0
+
+CIRCUIT_BREAKER:
+  STATE: CLOSED
+  NO_PROGRESS_COUNT: 0
+
+DUAL_GATE:
+  GATE_1: [true if docs_generated >= 3 AND has_adr AND diagrams_valid]
+  GATE_2: [true if documentation complete]
+  CAN_EXIT: [GATE_1 AND GATE_2]
+
+BLOCKERS:
+  - [any blockers or "none"]
+
+EXIT_SIGNAL: [true if DOCUMENT phase complete]
+RECOMMENDATION: [next action - workflow complete or continue]
+---END_PRP_PHASE_STATUS---
+```
+
+### 4. Metrics Report
+
+Provide metrics for phase-monitor:
+
+```yaml
+DOCUMENT_PHASE_METRICS:
+  docs_generated: [count]
+  diagrams_total: [count]
+  diagrams_valid: [count - diagrams that render correctly]
+  has_adr: [true/false]
+  has_openapi: [true/false - if API exists]
+  adr_count: [number of ADRs]
+  sequence_diagram_count: [number]
+  doc_files:
+    - [path to each generated file]
+```
+
+### 5. TDD Workflow Completion
 
 ```
 TDD WORKFLOW STATUS
