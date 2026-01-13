@@ -114,8 +114,9 @@ if circuit_breaker.state == "OPEN":
 **Call the TDD E2E Generator Agent:**
 
 ```
-Use the Task tool with subagent_type: bp:tdd-e2e-generator
+Use the Task tool with subagent_type: test-engineer
 Provide: PRP file path and acceptance criteria
+Follow patterns from: claude/agents/tdd-e2e-generator.md
 ```
 
 The agent will:
@@ -212,8 +213,9 @@ This is because GREEN has the highest risk of infinite loops.
 **Call the Architecture Docs Generator Agent:**
 
 ```
-Use the Task tool with subagent_type: bp:architecture-docs-generator
+Use the Task tool with subagent_type: docs-writer
 Provide: PRP file path and implemented code context
+Follow patterns from: claude/agents/architecture-docs-generator.md
 ```
 
 The agent will generate:

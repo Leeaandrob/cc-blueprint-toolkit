@@ -55,8 +55,8 @@ teardown() {
         "false" "false" "false" \
         "Continue generating tests")
 
-    echo "$block" | grep -q "---PRP_PHASE_STATUS---"
-    echo "$block" | grep -q "PHASE: RED"
+    echo "$block" | grep -q -e "---PRP_PHASE_STATUS---"
+    echo "$block" | grep -q -e "PHASE: RED"
     echo "$block" | grep -q "STATUS: IN_PROGRESS"
     echo "$block" | grep -q "ITERATION: 1"
     echo "$block" | grep -q "PROGRESS_PERCENT: 50"
@@ -68,7 +68,7 @@ teardown() {
     echo "$block" | grep -q "GATE_2: false"
     echo "$block" | grep -q "CAN_EXIT: false"
     echo "$block" | grep -q "EXIT_SIGNAL: false"
-    echo "$block" | grep -q "---END_PRP_PHASE_STATUS---"
+    echo "$block" | grep -q -e "---END_PRP_PHASE_STATUS---"
 }
 
 @test "Status block CAN_EXIT is computed from gates" {
@@ -93,7 +93,7 @@ teardown() {
     append_status_log "$block"
 
     [ -f .prp-session/phase-status.log ]
-    grep -q "---PRP_PHASE_STATUS---" .prp-session/phase-status.log
+    grep -q -e "---PRP_PHASE_STATUS---" .prp-session/phase-status.log
 }
 
 @test "Multiple status blocks are appended correctly" {
