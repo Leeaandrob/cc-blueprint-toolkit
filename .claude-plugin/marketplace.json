@@ -1,16 +1,16 @@
 {
   "name": "cc-blueprint-toolkit",
   "owner": {
-    "name": "Croffasia",
+    "name": "Leeaandrob",
     "email": "support@vibecodekit.dev",
-    "url": "https://github.com/croffasia"
+    "url": "https://github.com/Leeaandrob"
   },
   "plugins": [
     {
       "source": "./",
       "name": "bp",
       "description": "Blueprint-driven Claude Code autopilot. Smart preparation over endless iterations - AI analyzes patterns, creates solid implementation plans, delivers working code in 15 minutes.",
-      "version": "1.4.1"
+      "version": "1.6.0"
     }
   ]
 }

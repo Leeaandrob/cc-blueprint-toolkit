@@ -143,13 +143,17 @@ create_symlinks() {
 }
 
 update_cache() {
-    local version
-    version=$(get_installed_version)
-
-    if [[ "$version" != "none" ]]; then
-        log_info "Updating cache for version: $version"
-        sync_files "${CACHE_DIR}/${version}"
-        log_success "Cache updated!"
+    if [[ -d "$CACHE_DIR" ]]; then
+        # Sync to ALL versions in cache, not just the first one
+        for version_dir in "$CACHE_DIR"/*/; do
+            if [[ -d "$version_dir" ]]; then
+                local version
+                version=$(basename "$version_dir")
+                log_info "Updating cache for version: $version"
+                sync_files "${CACHE_DIR}/${version}"
+            fi
+        done
+        log_success "All cache versions updated!"
     else
         log_warning "No installed version found in cache"
     fi

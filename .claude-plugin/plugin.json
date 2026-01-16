@@ -1,14 +1,14 @@
 {
   "name": "bp",
   "description": "Blueprint-driven Claude Code autopilot. Smart preparation over endless iterations - AI analyzes patterns, creates solid implementation plans, delivers working code in 15 minutes.",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": {
     "name": "Croffasia",
     "email": "support@vibecodekit.dev",
     "url": "https://github.com/croffasia"
   },
-  "homepage": "https://github.com/croffasia/cc-blueprint-toolkit#readme",
-  "repository": "https://github.com/croffasia/cc-blueprint-toolkit",
+  "homepage": "https://github.com/Leeaandrob/cc-blueprint-toolkit#readme",
+  "repository": "https://github.com/Leeaandrob/cc-blueprint-toolkit",
   "license": "MIT",
   "keywords": ["prp", "blueprint", "planning", "automation", "architecture", "patterns", "agents"],
   "commands": [
@@ -16,13 +16,18 @@
     "./claude/commands/generate-prp.md",
     "./claude/commands/execute-task.md",
     "./claude/commands/init.md",
-    "./claude/commands/brainstorm.md"
+    "./claude/commands/brainstorm.md",
+    "./claude/commands/ship.md"
   ],
   "agents": [
     "./claude/agents/codebase-research.md",
     "./claude/agents/preflight-prp.md",
     "./claude/agents/research-agent.md",
-    "./claude/agents/team-lead-task-breakdown.md"
+    "./claude/agents/team-lead-task-breakdown.md",
+    "./claude/agents/pr-generator.md",
+    "./claude/agents/tdd-e2e-generator.md",
+    "./claude/agents/architecture-docs-generator.md",
+    "./claude/agents/phase-monitor.md"
   ],
-  "mcpServers":"./.mcp.json"
+  "mcpServers": "./.mcp.json"
 }

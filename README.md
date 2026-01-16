@@ -1,19 +1,16 @@
-<a href="https://vibecodekit.dev">
-<img src="./public/vibecodekit-banner.png" alt="PRO Version" width="100%">
-</a>
+# 🏗️ Blueprint-Driven Claude Code Autopilot
 
 <p align="center">
-<strong>🏆 Need advanced features?</strong> Check out the PRO version with early access and lifetime license<br>
-→ <a href="https://vibecodekit.dev">vibecodekit.dev</a><br>
-<strong>💎 Use code <code>CCBLUEPRINT</code> for 10% OFF</strong>
+<strong>🔄 Actively Maintained Fork</strong><br>
+Enhanced fork of <a href="https://github.com/croffasia/cc-blueprint-toolkit">cc-blueprint-toolkit</a> by <a href="https://github.com/croffasia">Croffasia</a><br>
+Now maintained by <a href="https://github.com/Leeaandrob">Leeaandrob</a> with <strong>TDD E2E Workflow</strong>, <strong>Ralph Reliability Patterns</strong>, and <strong>Architecture Docs</strong>
 </p>
 
-# 🏗️ Blueprint-Driven Claude Code Autopilot
 > **Claude Code Plugin for smart blueprint-driven development**
 >
 > AI analyzes patterns, creates solid implementation plans, delivers working code in 15 minutes
 
-[![GitHub stars](https://img.shields.io/github/stars/croffasia/cc-blueprint-toolkit?style=social)](https://github.com/croffasia/cc-blueprint-toolkit)
+[![GitHub stars](https://img.shields.io/github/stars/Leeaandrob/cc-blueprint-toolkit?style=social)](https://github.com/Leeaandrob/cc-blueprint-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude-Code-blue)](https://claude.ai/code)
 [![Threads / Open Source Alternatives](https://img.shields.io/badge/Threads-OpenSourceAlternatves-black)](https://www.threads.com/@opensourcealternatives)
@@ -36,6 +33,9 @@ Blueprint-driven development plugin: AI analyzes your codebase patterns, creates
 
 /bp:execute-task @docs/tasks/user-auth.md
 # → Execute all tasks from breakdown (for complex features)
+
+/bp:ship
+# → Branch, commit, push, and PR created automatically
 ```
 
 **Before**: 2-4 hours of coding, debugging, and integration  
@@ -60,10 +60,10 @@ Blueprint-driven development plugin: AI analyzes your codebase patterns, creates
 In Claude Code console, run:
 ```bash
 # Short format
-/plugin marketplace add croffasia/cc-blueprint-toolkit
+/plugin marketplace add Leeaandrob/cc-blueprint-toolkit
 
 # Or full URL
-/plugin marketplace add https://github.com/croffasia/cc-blueprint-toolkit.git
+/plugin marketplace add https://github.com/Leeaandrob/cc-blueprint-toolkit.git
 ```
 
 **Step 2: Install Plugin**
@@ -157,23 +157,51 @@ DUAL_GATE:
 - Perfect for large implementations
 - Systematic progress tracking
 
+### 5. **Ship Your Feature** (`/bp:ship`)
+- Automates the entire delivery workflow after implementation
+- Runs pre-flight validation (tests, lint, build)
+- Creates branch with naming from PRP (e.g., `feature/user-auth`)
+- Generates commit message following Conventional Commits
+- Pushes to origin and creates PR with structured description
+- Supports both GitHub (`gh`) and GitLab (`glab`) CLIs
+
+```bash
+# After /bp:execute-prp completes:
+/bp:ship
+
+# Or with explicit PRP:
+/bp:ship --prp docs/PRPs/user-auth.md
+
+# Preview without executing:
+/bp:ship --dry-run
+
+# Output:
+# ✅ Tests passed
+# ✅ Lint passed
+# ✅ Branch created: feature/user-auth
+# ✅ Committed: feat: implement user authentication
+# ✅ PR created: https://github.com/user/repo/pull/123
+```
+
 ## 🎯 How It Works
 
 ### 🧠 Full Feature Development Flow
-**brainstorm → generate prp → execute**
+**brainstorm → generate prp → execute → ship**
 
 1. **Start with Ideas** - Use `/bp:brainstorm` when you need to explore and refine feature concepts
-2. **Generate Implementation Plan** - Use `/bp:generate-prp` to create detailed technical specifications  
+2. **Generate Implementation Plan** - Use `/bp:generate-prp` to create detailed technical specifications
 3. **Choose Your Execution Path**:
    - **Simple Features**: `/bp:execute-prp` - Direct implementation for straightforward tasks
    - **Complex Features**: `/bp:execute-task` - Step-by-step implementation with progress tracking
+4. **Ship Your Feature** - Use `/bp:ship` to automate branch, commit, push, and PR creation
 
 ### 🚀 Quick Implementation Flow
-**generate prp → execute**
+**generate prp → execute → ship**
 
 Skip brainstorming when you have clear requirements:
 1. **Generate Plan**: `/bp:generate-prp`
 2. **Execute**: Choose `/bp:execute-prp` for simple features or `/bp:execute-task` for complex ones
+3. **Ship**: Use `/bp:ship` to deliver your feature with a PR
 
 > **Pro Tip**: Use `/bp:execute-task` for higher quality first-pass implementations on complex features
 
@@ -305,15 +333,38 @@ Want production-ready setup with zero configuration?
 - 💬 **Issues** for questions and feature requests
 - 🔄 **PRs welcome** for new agents and improvements
 
+## 🙏 Credits & Acknowledgments
+
+This project is built upon the excellent foundation created by [Croffasia](https://github.com/croffasia).
+
+| | Original | This Fork |
+|---|----------|-----------|
+| **Author** | [Croffasia](https://github.com/croffasia) | [Leeaandrob](https://github.com/Leeaandrob) |
+| **Repository** | [croffasia/cc-blueprint-toolkit](https://github.com/croffasia/cc-blueprint-toolkit) | [Leeaandrob/cc-blueprint-toolkit](https://github.com/Leeaandrob/cc-blueprint-toolkit) |
+| **Focus** | Blueprint-driven development | TDD E2E + Ralph Patterns + Architecture Docs |
+
+### What's New in This Fork
+
+- **TDD E2E Workflow** - Test-first development with automatic test generation
+- **Ralph Reliability Patterns** - Circuit Breaker, Dual-Gate Exit, Metrics Tracking
+- **Architecture Documentation** - Auto-generated ADRs, C4 diagrams, ERD, Sequence diagrams
+- **Ship Command** - Automated PR creation workflow
+- **6 Test Templates** - Node.js, Python, Go, Playwright, Detox, Full-Stack
+- **8 Architecture Templates** - Complete documentation generation
+
+See [CHANGELOG.md](./CHANGELOG.md) for detailed version history.
+
 ## 📄 License
 
 MIT License - Use freely in commercial projects
+
+Original work by [Croffasia](https://github.com/croffasia) - MIT Licensed
 
 ---
 
 **Ready to stop wasting hours on features?** [Install now](#quick-start) and experience autonomous development! 🚀
 
-[![GitHub stars](https://img.shields.io/github/stars/croffasia/cc-blueprint-toolkit?style=social)](https://github.com/croffasia/cc-blueprint-toolkit)
+[![GitHub stars](https://img.shields.io/github/stars/Leeaandrob/cc-blueprint-toolkit?style=social)](https://github.com/Leeaandrob/cc-blueprint-toolkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude-Code-blue)](https://claude.ai/code)
 [![Threads / Open Source Alternatives](https://img.shields.io/badge/Threads-OpenSourceAlternatves-black)](https://www.threads.com/@opensourcealternatives)
