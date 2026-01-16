@@ -91,6 +91,7 @@ sync_files() {
         "claude/commands"
         "claude/lib"
         "docs/templates"
+        "servers/dashboard/src"
     )
 
     # Files to sync
@@ -99,6 +100,9 @@ sync_files() {
         ".mcp.json"
         ".gitignore"
         "LICENSE"
+        "servers/dashboard/package.json"
+        "servers/dashboard/package-lock.json"
+        "servers/dashboard/tsconfig.json"
     )
 
     # Sync directories
@@ -122,6 +126,13 @@ sync_files() {
     if [[ -d "${PROJECT_ROOT}/.claude-plugin" ]]; then
         rsync -av "${PROJECT_ROOT}/.claude-plugin/" "${target}/.claude-plugin/"
         log_success "Synced .claude-plugin/"
+    fi
+
+    # Build MCP dashboard server if package.json exists
+    if [[ -f "${target}/servers/dashboard/package.json" ]]; then
+        log_info "Building MCP dashboard server..."
+        (cd "${target}/servers/dashboard" && npm install --silent 2>/dev/null) || true
+        log_success "Built MCP dashboard server"
     fi
 }
 
