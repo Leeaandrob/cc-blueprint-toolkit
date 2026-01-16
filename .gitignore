@@ -68,3 +68,8 @@ docs/tasks/
 
 # Session files
 .prp-session/
+
+# Node.js
+node_modules/
+build/
+dist/
