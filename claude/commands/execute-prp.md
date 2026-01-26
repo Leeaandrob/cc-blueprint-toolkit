@@ -84,16 +84,24 @@ This command implements production-grade reliability patterns from Ralph for Cla
 2. **Extract acceptance criteria** from Success Criteria section
 3. **Check for existing session**:
    ```bash
+   # Determine session directory (central location for dashboard monitoring)
+   # Default: ~/.bp-sessions/{basename of current directory}
+   # Override: PRP_SESSION_DIR environment variable
+   SESSION_DIR="${PRP_SESSION_DIR:-$HOME/.bp-sessions/$(basename $(pwd))}"
+
    # Check if resuming from previous session
-   if [ -d ".prp-session" ]; then
-     echo "Previous session found - resuming..."
+   if [ -d "$SESSION_DIR" ] && [ -f "$SESSION_DIR/loop-state.json" ]; then
+     echo "Previous session found at: $SESSION_DIR - resuming..."
      # Load circuit breaker state
      # Load metrics
    else
-     mkdir -p .prp-session
+     mkdir -p "$SESSION_DIR"
+     echo "New session created at: $SESSION_DIR"
      # Initialize new session
    fi
    ```
+
+   **Note**: Central session directory enables `/bp:dashboard` to monitor all active sessions.
 4. **Initialize Circuit Breaker** (state: CLOSED, no_progress_count: 0)
 5. **Initialize Metrics Tracker** with phase-specific metrics
 6. **Identify the project stack** (Node, Python, Go, Web, Mobile, Full-Stack)
@@ -386,13 +394,26 @@ RECOMMENDATION: TDD E2E workflow complete - all phases successful
 
 ## Session Files
 
-The workflow creates `.prp-session/` directory for state persistence:
+The workflow creates a session directory in the **central location** for state persistence:
 
 ```
-.prp-session/
+~/.bp-sessions/{project-name}/
+├── loop-state.json         # Session state and phase info
 ├── circuit-breaker.json    # CB state for resume capability
 ├── metrics.json            # Progress metrics history
+├── dual-gate.json          # Exit condition tracking
+├── rate-limit.json         # API rate limit state
 └── phase-status.log        # All PRP_PHASE_STATUS blocks (append-only)
+```
+
+**Central location benefits:**
+- `/bp:dashboard` can monitor all sessions from any terminal
+- Sessions persist across terminal restarts
+- Easy to manage multiple concurrent executions
+
+**Override with environment variable:**
+```bash
+export PRP_SESSION_DIR=~/.bp-sessions/custom-project-name
 ```
 
 ## Legacy Mode

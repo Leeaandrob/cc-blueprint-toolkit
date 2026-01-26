@@ -317,8 +317,19 @@ def calculate_overall_progress(state: dict) -> int:
 
 ```yaml
 persistence:
-  file: .prp-session/loop-state.json
+  # Central directory for multi-terminal dashboard monitoring
+  directory:
+    base: ~/.bp-sessions/
+    project: derived from current working directory name
+    full_path: ~/.bp-sessions/{project-name}/
+    override: PRP_SESSION_DIR environment variable
+
+  file: {session_dir}/loop-state.json
   format: JSON (pretty-printed)
+
+  # Examples:
+  # Working in ~/projects/my-api → ~/.bp-sessions/my-api/loop-state.json
+  # With override → $PRP_SESSION_DIR/loop-state.json
 
   write_triggers:
     - session created
@@ -330,6 +341,11 @@ persistence:
   atomic_write:
     method: write to temp file, then rename
     reason: prevent corruption on interrupt
+
+  # Why central directory?
+  # - /bp:dashboard can monitor all sessions from web UI
+  # - Sessions persist across terminal restarts
+  # - Easy to manage multiple concurrent executions
 ```
 
 ## Validation Rules

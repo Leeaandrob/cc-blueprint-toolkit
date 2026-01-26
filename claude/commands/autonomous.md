@@ -49,14 +49,37 @@ Start autonomous development execution for a PRP file. The loop engine continuou
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## Session Directory
+
+Sessions are stored in a **central directory** for multi-terminal dashboard monitoring:
+
+```yaml
+session_directory:
+  base: ~/.bp-sessions/
+  project: {derived from current directory name or PRP file}
+  full_path: ~/.bp-sessions/{project-name}/
+
+  # Examples:
+  # Working in ~/projects/my-app → ~/.bp-sessions/my-app/
+  # Working in ~/work/api-service → ~/.bp-sessions/api-service/
+
+  # Environment variable override:
+  # export PRP_SESSION_DIR=~/.bp-sessions/custom-name
+```
+
+**Why central?** Enables the `/bp:dashboard` web UI to monitor all active sessions from any terminal.
+
 ## Session Detection
 
 Before starting, check for existing sessions:
 
 ```yaml
 detection:
-  1. CHECK: .prp-session/loop-state.json exists
-  2. IF exists:
+  1. DETERMINE: session directory path
+     - Use PRP_SESSION_DIR env var if set
+     - Otherwise: ~/.bp-sessions/{basename of current directory}
+  2. CHECK: {session_dir}/loop-state.json exists
+  3. IF exists:
      - LOAD: session state
      - VALIDATE: state integrity
      - CHECK: expiration conditions
@@ -69,8 +92,8 @@ detection:
          PROMPT: "[R]esume, [N]ew, [A]bort"
      - ELSE:
          OFFER: reset or abort
-  3. IF not exists:
-     - CREATE: new session
+  4. IF not exists:
+     - CREATE: new session in central directory
 ```
 
 ## Session Resume Prompt
@@ -105,8 +128,11 @@ When a valid previous session is found:
 ```yaml
 create_session:
   1. GENERATE: session_id (UUID v4)
-  2. CREATE: .prp-session/ directory
-  3. INITIALIZE files:
+  2. DETERMINE: session directory
+     - Default: ~/.bp-sessions/{basename of cwd}/
+     - Override: PRP_SESSION_DIR environment variable
+  3. CREATE: {session_dir}/ directory (mkdir -p)
+  4. INITIALIZE files:
      loop-state.json:
        session_id: {generated}
        prp_file: $ARGUMENTS
