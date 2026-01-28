@@ -65,7 +65,21 @@ This command implements production-grade reliability patterns from Ralph for Cla
 │  📚 PHASE DOCUMENT (Tracked) ──────────────────────────────────────────────│
 │  │  1. Call architecture-docs-generator                                    │
 │  │  2. Track docs_generated, diagrams_valid                                │
-│  │  3. Emit final PRP_PHASE_STATUS block                                   │
+│  │  3. Emit PRP_PHASE_STATUS block                                         │
+│  │                                                                          │
+│  🔍 PHASE QA (Circuit Breaker Protected) ──────────────────────────────────│
+│  │  LOOP until Dual-Gate exit OR human escalation:                        │
+│  │    1. Check Circuit Breaker state (HALT if OPEN)                       │
+│  │    2. Query memory (4 mandatory queries via claude-self-reflect)       │
+│  │    3. Detect project stack (Node/Python/Go/Lua)                        │
+│  │    4. Validate against objective checklist                              │
+│  │    5. Generate QA report                                                │
+│  │    6. Emit PRP_PHASE_STATUS with QA metrics                            │
+│  │    7. Check verdict: APPROVE or REJECT                                  │
+│  │  ON APPROVE: Proceed to SHIP                                            │
+│  │  ON REJECT: Return to GREEN (max 3 per cycle)                          │
+│  │  ON 3rd REJECT: Escalate to human                                       │
+│  │  NOTE: QA uses DIFFERENT model than implementer (model diversity)       │
 │  │                                                                          │
 │  ✅ COMPLETION REPORT ─────────────────────────────────────────────────────│
 │     ├── Phase summaries with metrics                                       │
@@ -239,7 +253,68 @@ The agent will generate:
 
 Documentation will be placed in `docs/architecture/` directory.
 
-### 5. Final Validation
+### 5. PHASE QA: Validate Implementation
+
+**CRITICAL**: QA uses DIFFERENT model than implementer to avoid echo chamber.
+
+**Call the QA Agent:**
+
+```
+Use the Task tool with subagent_type: bp:qa-agent
+Provide: PRP file path, modified files list, implementer model used
+Follow patterns from: claude/agents/qa-agent.md
+```
+
+**QA Execution Flow:**
+
+1. **Query Memory (MANDATORY)**
+   - Historical bugs (csr_reflect_on_past)
+   - Stack patterns (csr_search_by_concept)
+   - Architecture decisions (csr_search_narratives)
+   - File history (csr_search_by_file)
+
+2. **Detect Project Stack**
+   - Read marker files (package.json, pyproject.toml, go.mod)
+   - Load stack-specific commands from qa-tools-mapping.yml
+
+3. **Validate Checklist**
+   - Load qa-checklist.yml
+   - Execute validation for each criterion
+   - Track blocking vs warning issues
+
+4. **Generate Report**
+   - Follow qa-report-template.md format
+   - Include memory context summary
+   - List all issues with fix suggestions
+
+5. **Emit Verdict**
+   - APPROVE: All blocking criteria pass → Proceed to SHIP
+   - REJECT: Blocking issues exist → Return to GREEN
+
+**QA Retry Logic:**
+```yaml
+if verdict == "REJECT":
+  qa_attempt += 1
+  if qa_attempt < 3:
+    return_to: GREEN  # Fix issues
+  else:
+    escalate_to: human
+    provide: full QA report
+    await: human decision
+
+if verdict == "APPROVE":
+  proceed_to: SHIP
+  reset: qa_attempt = 0
+```
+
+**Check Dual-Gate Exit:**
+```yaml
+gate_1 = (blocking_issues == 0 AND verdict == "APPROVE")
+gate_2 = exit_signal == true
+can_exit = gate_1 AND gate_2
+```
+
+### 6. Final Validation
 
 1. **Run complete test suite** one final time
 2. **Verify all documentation** was generated correctly
@@ -291,6 +366,23 @@ TDD E2E WORKFLOW - COMPLETION REPORT (Ralph-Enhanced)
    ├── ERD: [Created/Skipped]
    ├── Sequence Diagrams: [Number]
    └── OpenAPI: [Created/Skipped]
+
+🔍 PHASE QA (Quality Validation)
+   ├── QA Model: [Model used - different from implementer]
+   ├── Memory Queries: 4 executed
+   │   ├── Historical Bugs: [count found]
+   │   ├── Stack Patterns: [count found]
+   │   ├── Architecture Decisions: [count found]
+   │   └── File History: [count reviewed]
+   ├── Checklist Results:
+   │   ├── Funcionalidade: [passed/total]
+   │   ├── Qualidade de Codigo: [passed/total] ([warnings] warnings)
+   │   └── Documentacao: [passed/total] ([warnings] warnings)
+   ├── Blocking Issues: [count]
+   ├── Warnings: [count]
+   ├── Verdict: [APPROVE/REJECT]
+   ├── Attempts: [1-3]
+   └── QA Report: [path to report]
 
 🔒 CIRCUIT BREAKER SUMMARY
    ├── Total state transitions: [count]
@@ -360,6 +452,7 @@ RECOMMENDATION: TDD E2E workflow complete - all phases successful
 | GREEN | 2 | 3 | **Stricter** - highest loop risk |
 | REFACTOR | 5 | 5 | Lenient - iterative by nature |
 | DOCUMENT | 3 | 5 | Standard |
+| QA | 3 | 3 | Memory-assisted validation |
 
 ## Dual-Gate Exit Conditions
 
@@ -369,6 +462,7 @@ RECOMMENDATION: TDD E2E workflow complete - all phases successful
 | GREEN | tests_failing == 0 AND consecutive_runs >= 2 | exit_signal |
 | REFACTOR | tests_passing AND (iteration >= 5 OR done) | exit_signal |
 | DOCUMENT | docs_generated >= 3 AND has_adr | exit_signal |
+| QA | blocking_issues == 0 AND verdict == APPROVE | exit_signal |
 
 ## Stack Detection Reference
 

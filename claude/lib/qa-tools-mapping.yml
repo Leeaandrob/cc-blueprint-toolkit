@@ -1,0 +1,162 @@
+# QA Tools Mapping Configuration
+# Version: 1.0.0
+# Purpose: Stack detection and tool commands per language/framework
+#
+# Detection: Uses marker files to identify project stack
+# Commands: Maps test, lint, complexity, and duplication tools per stack
+
+qa_tools:
+  version: "1.0.0"
+
+  # ============================================
+  # STACK DETECTION
+  # ============================================
+  # Priority order for detection (first match wins)
+  detection_priority:
+    - node_typescript
+    - python
+    - golang
+    - lua
+    - javascript
+
+  detection:
+    node_typescript:
+      markers:
+        - "tsconfig.json"
+        - "package.json"  # with "typescript" in devDependencies
+      description: "Node.js with TypeScript"
+
+    javascript:
+      markers:
+        - "package.json"
+      exclude_markers:
+        - "tsconfig.json"
+      description: "Node.js with JavaScript"
+
+    python:
+      markers:
+        - "pyproject.toml"
+        - "setup.py"
+        - "requirements.txt"
+      description: "Python project"
+
+    golang:
+      markers:
+        - "go.mod"
+        - "go.sum"
+      description: "Go project"
+
+    lua:
+      markers:
+        - "*.rockspec"
+        - ".luacheckrc"
+      fallback_markers:
+        - "lua/"
+        - "spec/"
+      description: "Lua project"
+
+  # ============================================
+  # STACK-SPECIFIC COMMANDS
+  # ============================================
+  stacks:
+    node_typescript:
+      test: "npm test"
+      test_verbose: "npm test -- --verbose"
+      test_json: "npm test -- --json 2>/dev/null"
+      lint: "npx eslint . --ext .ts,.tsx,.js,.jsx"
+      lint_fix: "npx eslint . --ext .ts,.tsx,.js,.jsx --fix"
+      complexity: "npx eslint . --rule 'complexity: [error, 10]'"
+      duplication: "npx jscpd --threshold 5 --reporters json"
+      typecheck: "npx tsc --noEmit"
+      format_check: "npx prettier --check ."
+
+    javascript:
+      test: "npm test"
+      test_verbose: "npm test -- --verbose"
+      test_json: "npm test -- --json 2>/dev/null"
+      lint: "npx eslint . --ext .js,.jsx"
+      lint_fix: "npx eslint . --ext .js,.jsx --fix"
+      complexity: "npx eslint . --rule 'complexity: [error, 10]'"
+      duplication: "npx jscpd --threshold 5 --reporters json"
+      format_check: "npx prettier --check ."
+
+    python:
+      test: "pytest tests/ -v"
+      test_verbose: "pytest tests/ -v --tb=long"
+      test_json: "pytest tests/ --json-report --json-report-file=- -q"
+      lint: "ruff check ."
+      lint_fix: "ruff check . --fix"
+      complexity: "radon cc . -a -nc"
+      complexity_threshold: "radon cc . -a --min C"
+      duplication: "jscpd --threshold 5 --reporters json"
+      typecheck: "mypy . --ignore-missing-imports"
+      format_check: "ruff format --check ."
+
+    golang:
+      test: "go test ./..."
+      test_verbose: "go test -v ./..."
+      test_json: "go test -json ./..."
+      test_coverage: "go test -cover ./..."
+      lint: "golangci-lint run"
+      lint_fix: "golangci-lint run --fix"
+      complexity: "gocyclo -over 10 ."
+      duplication: "dupl -threshold 50 ."
+      format_check: "gofmt -l ."
+
+    lua:
+      test: "busted spec/"
+      test_verbose: "busted spec/ -v"
+      test_output: "busted spec/ -o json"
+      lint: "luacheck ."
+      lint_config: "luacheck . --config .luacheckrc"
+      complexity: "luacheck . --no-unused"
+      duplication: "jscpd --threshold 5 --reporters json"
+
+  # ============================================
+  # FALLBACK COMMANDS
+  # ============================================
+  # Used when stack-specific command fails or is unavailable
+  fallback:
+    test: "echo 'No test runner detected'"
+    lint: "echo 'No linter detected'"
+    complexity: "echo 'No complexity checker detected'"
+    duplication: "jscpd --threshold 5"
+
+  # ============================================
+  # DOCUMENTATION CHECKS
+  # ============================================
+  # Stack-independent documentation validation
+  documentation:
+    readme:
+      check: "test -f README.md"
+      search: "grep -q '{feature_name}' README.md"
+
+    adr:
+      directory: "docs/architecture/decisions"
+      fallback_directory: "docs/adr"
+      pattern: "*.md"
+
+    changelog:
+      files:
+        - "CHANGELOG.md"
+        - "CHANGES.md"
+        - "HISTORY.md"
+      search: "grep -q '{version}\\|{feature_name}' {changelog_file}"
+
+    api_docs:
+      openapi_files:
+        - "openapi.yaml"
+        - "openapi.json"
+        - "swagger.yaml"
+        - "swagger.json"
+        - "docs/api/openapi.yaml"
+      validate: "npx @openapitools/openapi-generator-cli validate -i {openapi_file}"
+
+# ============================================
+# USAGE NOTES
+# ============================================
+# 1. QA Agent should detect stack using marker files
+# 2. If multiple stacks detected, use detection_priority order
+# 3. Commands with {placeholders} should be resolved at runtime
+# 4. Fallback commands used when primary command unavailable
+# 5. Documentation checks are stack-independent

@@ -210,6 +210,52 @@ phase_agents:
   GREEN: "bp:green-implementer"
   REFACTOR: "bp:refactor-agent"
   DOCUMENT: "bp:architecture-docs-generator"
+  QA: "bp:qa-agent"
+```
+
+## Phase Sequence
+
+```yaml
+phase_sequence:
+  - RED       # Generate failing E2E tests
+  - GREEN     # Implement code to pass tests
+  - REFACTOR  # Improve code quality
+  - DOCUMENT  # Generate architecture docs
+  - QA        # Validate with objective checklist + memory
+  # After QA APPROVE: SHIP (handled by /bp:ship command)
+```
+
+## QA Phase Integration
+
+The QA phase validates implementation quality before shipping:
+
+```yaml
+qa_phase:
+  purpose: "AI reviewing AI with memory integration"
+  triggers_after: DOCUMENT phase completes
+  on_approve: Trigger SHIP (auto-create branch, commit, PR)
+  on_reject: Return to GREEN phase for fixes
+  max_attempts: 3  # Per GREEN→QA cycle
+  escalation: Human intervention after 3 rejections
+
+qa_attempt_counter:
+  scope: "Per GREEN→QA cycle"
+  reset_trigger: "GREEN phase success (all tests pass)"
+  increment_trigger: "QA REJECT verdict"
+  max_value: 3
+  on_max: "Escalate to human with full QA report"
+```
+
+### QA Retry Flow
+
+```
+GREEN success → QA attempt 1
+  └── REJECT → GREEN retry
+      └── GREEN success → QA attempt 2
+          └── REJECT → GREEN retry
+              └── GREEN success → QA attempt 3
+                  └── REJECT → ESCALATE to human
+                  └── APPROVE → SHIP
 ```
 
 ## Agent Prompt Builder
@@ -268,6 +314,12 @@ def detect_progress(phase: str, current: dict, last: dict) -> bool:
             current.get("diagrams_valid", 0) > last.get("diagrams_valid", 0)
         )
 
+    elif phase == "QA":
+        return (
+            current.get("checks_passing", 0) > last.get("checks_passing", 0) or
+            current.get("blocking_issues", float('inf')) < last.get("blocking_issues", float('inf'))
+        )
+
     return False
 ```
 
@@ -314,6 +366,12 @@ def evaluate_gate_1(phase: str, metrics: dict) -> bool:
             metrics.get("has_adr", False) is True
         )
 
+    elif phase == "QA":
+        return (
+            metrics.get("blocking_issues", 1) == 0 and
+            metrics.get("verdict", "") == "APPROVE"
+        )
+
     return False
 ```
 
@@ -328,7 +386,8 @@ def update_circuit_breaker(cb_state: dict, progress: bool, status_block: dict):
         "RED": {"no_progress": 3, "same_error": 5},
         "GREEN": {"no_progress": 2, "same_error": 3},  # Stricter
         "REFACTOR": {"no_progress": 5, "same_error": 5},
-        "DOCUMENT": {"no_progress": 3, "same_error": 5}
+        "DOCUMENT": {"no_progress": 3, "same_error": 5},
+        "QA": {"no_progress": 3, "same_error": 3}  # QA thresholds
     }
 
     if progress:

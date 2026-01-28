@@ -1,0 +1,98 @@
+# QA Checklist Configuration
+# Version: 1.0.0
+# Purpose: Objective criteria for QA Agent validation
+#
+# Criteria types:
+#   - blocking: true  = REJECT if fails
+#   - blocking: false = WARNING only (non-blocking)
+
+qa_checklist:
+  version: "1.0.0"
+
+  # ============================================
+  # FUNCIONALIDADE (Functionality)
+  # ============================================
+  funcionalidade:
+    - id: F1
+      criterio: "100% testes E2E passando"
+      validacao: "test_runner exit_code == 0"
+      comando: "{detected_test_command}"
+      blocking: true
+
+    - id: F2
+      criterio: "Todos acceptance criteria do PRP cobertos"
+      validacao: "criteria_coverage == 100%"
+      metodo: "parse_prp_and_verify"
+      blocking: true
+
+  # ============================================
+  # QUALIDADE DE CODIGO (Code Quality)
+  # ============================================
+  qualidade_codigo:
+    - id: C1
+      criterio: "Lint passa sem erros"
+      validacao: "linter exit_code == 0"
+      comando: "{detected_lint_command}"
+      blocking: true
+
+    - id: C2
+      criterio: "Complexidade ciclomatica <10"
+      validacao: "max_complexity < 10"
+      comando: "{detected_complexity_command}"
+      blocking: true
+
+    - id: C3
+      criterio: "Sem codigo duplicado (>5%)"
+      validacao: "duplication_percentage < 5"
+      comando: "jscpd --threshold 5"
+      blocking: false
+
+    - id: C4
+      criterio: "Naming conventions seguidas"
+      validacao: "naming_violations == 0"
+      comando: "{detected_lint_command} --rule naming"
+      blocking: false
+
+  # ============================================
+  # DOCUMENTACAO (Documentation)
+  # ============================================
+  documentacao:
+    - id: D1
+      criterio: "README atualizado com feature"
+      validacao: "readme_contains_feature"
+      metodo: "grep_readme"
+      blocking: true
+
+    - id: D2
+      criterio: "ADR existe para decisoes arquiteturais"
+      validacao: "adr_file_exists"
+      metodo: "check_docs_adr"
+      blocking: true
+
+    - id: D3
+      criterio: "API docs gerados (se aplicavel)"
+      validacao: "openapi_valid OR not_applicable"
+      metodo: "validate_openapi"
+      blocking: false
+
+    - id: D4
+      criterio: "Comentarios em funcoes complexas"
+      validacao: "complex_funcs_documented"
+      metodo: "check_complexity_comments"
+      blocking: false
+
+    - id: D5
+      criterio: "CHANGELOG atualizado"
+      validacao: "changelog_has_entry"
+      metodo: "grep_changelog"
+      blocking: true
+
+# ============================================
+# SUMMARY
+# ============================================
+# Total Criteria: 11
+# Blocking: 7 (F1, F2, C1, C2, D1, D2, D5)
+# Warnings: 4 (C3, C4, D3, D4)
+#
+# APPROVE: All blocking criteria pass
+# REJECT: Any blocking criterion fails
