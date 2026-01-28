@@ -3,7 +3,7 @@
 <p align="center">
 <strong>🔄 Actively Maintained Fork</strong><br>
 Enhanced fork of <a href="https://github.com/croffasia/cc-blueprint-toolkit">cc-blueprint-toolkit</a> by <a href="https://github.com/croffasia">Croffasia</a><br>
-Now maintained by <a href="https://github.com/Leeaandrob">Leeaandrob</a> with <strong>TDD E2E Workflow</strong>, <strong>Ralph Reliability Patterns</strong>, and <strong>Architecture Docs</strong>
+Now maintained by <a href="https://github.com/Leeaandrob">Leeaandrob</a> with <strong>TDD E2E Workflow</strong>, <strong>Ralph Reliability Patterns</strong>, <strong>QA Agent with Memory Integration</strong>, and <strong>Autonomous Loop Engine</strong>
 </p>
 
 > **Claude Code Plugin for smart blueprint-driven development**
@@ -108,9 +108,11 @@ This will automatically install documentation templates to your project, enablin
 #### TDD E2E Workflow (State of the Art)
 ```
 🔴 RED      → Generate failing E2E tests from acceptance criteria
-🟢 GREEN   → Implement minimum code to pass tests
+🟢 GREEN    → Implement minimum code to pass tests
 🔵 REFACTOR → Improve code quality while tests stay green
 📚 DOCUMENT → Generate architecture docs (ADRs, C4, ERD, Sequence)
+🔍 QA       → AI reviewing AI with memory integration (v1.8.0)
+🚀 SHIP     → Auto-create branch, commit, and PR
 ```
 
 #### Ralph-Enhanced Reliability Patterns (v2)
@@ -132,6 +134,7 @@ The `execute-prp` command now includes production-grade reliability patterns ins
 | GREEN | **2** | **Stricter** - highest loop risk |
 | REFACTOR | 5 | Lenient - iterative by nature |
 | DOCUMENT | 3 | Standard - doc generation |
+| QA | 3 | Memory-assisted validation |
 
 **Status Block Output:**
 Every significant action emits a structured `PRP_PHASE_STATUS` block for observability:
@@ -182,6 +185,78 @@ DUAL_GATE:
 # ✅ Committed: feat: implement user authentication
 # ✅ PR created: https://github.com/user/repo/pull/123
 ```
+
+### 6. **Autonomous Execution** (`/bp:autonomous`) - NEW in v1.7.0
+- Fully autonomous TDD E2E workflow execution
+- Loop engine with Check → Spawn → Monitor → Evaluate cycle
+- Rate limiting with auto-wait on API limits
+- Circuit Breaker protection against infinite loops
+- Session persistence for resume after interruption
+
+```bash
+# Start autonomous execution:
+/bp:autonomous docs/prps/user-auth.md
+
+# Resume interrupted session:
+/bp:autonomous  # Auto-detects existing session
+
+# Output:
+# 🔄 Starting autonomous execution...
+# 🔴 RED phase: Generating E2E tests...
+# 🟢 GREEN phase: Implementing code...
+# 🔵 REFACTOR phase: Improving quality...
+# 📚 DOCUMENT phase: Generating docs...
+# 🔍 QA phase: Validating implementation...
+# ✅ All phases complete!
+```
+
+### 7. **Real-time Dashboard** (`/bp:dashboard`) - NEW in v1.7.0
+- Real-time monitoring of autonomous loop execution
+- Circuit Breaker state visualization
+- Rate limit tracking with countdown
+- Phase progress metrics
+- MCP server integration
+
+```bash
+# View dashboard:
+/bp:dashboard
+
+# Output shows:
+# - Current phase and iteration
+# - Tests passing/failing
+# - Circuit Breaker state
+# - Rate limit status
+# - Progress percentage
+```
+
+### 8. **QA Agent with Memory Integration** - NEW in v1.8.0
+
+The QA phase validates implementation quality with AI reviewing AI:
+
+**Key Features:**
+- **Model Diversity**: QA uses DIFFERENT model than implementer (Opus↔Sonnet)
+- **Memory Integration**: Queries historical context via `claude-self-reflect` MCP
+- **Objective Checklist**: 11 criteria (7 blocking, 4 warnings)
+- **Stack Auto-Detection**: Supports Node/Python/Go/Lua
+- **Per-Cycle Retry**: Max 3 rejections before human escalation
+
+**Memory Queries (4 mandatory):**
+| Query | Purpose |
+|-------|---------|
+| Historical Bugs | Find similar bugs to avoid regressions |
+| Stack Patterns | Ensure consistency with established patterns |
+| Architecture Decisions | Respect existing ADRs |
+| File History | Understand context of previous changes |
+
+**Verdict Logic:**
+```yaml
+IF blocking_issues > 0:
+  verdict: REJECT → Return to GREEN (max 3 attempts)
+ELSE:
+  verdict: APPROVE → Proceed to SHIP
+```
+
+> **Note**: QA Agent works in degraded mode without `claude-self-reflect` MCP, using only the objective checklist.
 
 ## 🎯 How It Works
 
@@ -254,16 +329,36 @@ All diagrams use **Mermaid** format for native GitHub/GitLab rendering.
 
 ```
 📦 cc-blueprint-toolkit/
-├── claude/agents/                    # Smart research agents
+├── claude/agents/                    # Smart agents
 │   ├── tdd-e2e-generator.md          # TDD E2E test generator
 │   ├── architecture-docs-generator.md # Architecture docs generator
-│   └── phase-monitor.md              # Ralph pattern monitoring agent
+│   ├── phase-monitor.md              # Ralph pattern monitoring agent
+│   ├── loop-controller.md            # Autonomous loop orchestrator (v1.7.0)
+│   ├── green-implementer.md          # GREEN phase implementation
+│   ├── refactor-agent.md             # REFACTOR phase agent
+│   └── qa-agent.md                   # QA validation with memory (v1.8.0)
 ├── claude/lib/                       # Specification documents
 │   ├── circuit-breaker-spec.md       # Circuit Breaker state machine
 │   ├── dual-gate-spec.md             # Dual-Gate exit conditions
 │   ├── status-block-spec.md          # PRP_PHASE_STATUS format
-│   └── metrics-spec.md               # Progress metrics tracking
+│   ├── metrics-spec.md               # Progress metrics tracking
+│   ├── rate-limit-spec.md            # Rate limiting behavior (v1.7.0)
+│   ├── session-manager-spec.md       # Session lifecycle (v1.7.0)
+│   ├── loop-state-spec.md            # Loop state schema (v1.7.0)
+│   ├── qa-checklist.yml              # QA validation criteria (v1.8.0)
+│   └── qa-tools-mapping.yml          # Stack detection config (v1.8.0)
 ├── claude/commands/                  # Claude Code Commands
+│   ├── execute-prp.md                # TDD E2E workflow execution
+│   ├── generate-prp.md               # PRP generation
+│   ├── execute-task.md               # Task execution
+│   ├── brainstorm.md                 # Feature brainstorming
+│   ├── ship.md                       # PR creation workflow
+│   ├── autonomous.md                 # Autonomous loop engine (v1.7.0)
+│   ├── dashboard.md                  # Real-time dashboard (v1.7.0)
+│   └── init.md                       # Project initialization
+├── servers/dashboard/                # MCP Dashboard Server (v1.7.0)
+│   ├── src/index.ts                  # Dashboard MCP implementation
+│   └── package.json                  # Node.js dependencies
 ├── tests/bats/                       # BATS test suite
 │   ├── test_helper.bash              # Test helper functions
 │   ├── circuit_breaker.bats          # Circuit Breaker tests
@@ -276,15 +371,16 @@ All diagrams use **Mermaid** format for native GitHub/GitLab rendering.
 │   │   ├── python-pytest.template.md
 │   │   ├── detox.template.md
 │   │   └── golang.template.md
-│   └── architecture/                 # Architecture doc templates
-│       ├── adr.template.md
-│       ├── c4-context.template.md
-│       ├── c4-container.template.md
-│       ├── c4-component.template.md
-│       ├── data-flow.template.md
-│       ├── erd.template.md
-│       ├── sequence.template.md
-│       └── openapi.template.yaml
+│   ├── architecture/                 # Architecture doc templates
+│   │   ├── adr.template.md
+│   │   ├── c4-context.template.md
+│   │   ├── c4-container.template.md
+│   │   ├── c4-component.template.md
+│   │   ├── data-flow.template.md
+│   │   ├── erd.template.md
+│   │   ├── sequence.template.md
+│   │   └── openapi.template.yaml
+│   └── qa-report-template.md         # QA validation report (v1.8.0)
 └── docs/                             # Documentation & guides
     └── vibe-coding-guide.md          # 10 essential tips for AI-powered development
 ```
@@ -345,6 +441,20 @@ This project is built upon the excellent foundation created by [Croffasia](https
 
 ### What's New in This Fork
 
+**v1.8.0 - QA Agent & Memory Integration**
+- **QA Agent Phase** - AI reviewing AI with objective validation checklist
+- **Memory Integration** - Historical context via `claude-self-reflect` MCP
+- **Model Diversity** - Different model validates than implements (Opus↔Sonnet)
+- **Per-Cycle Retry** - Max 3 rejections before human escalation
+
+**v1.7.0 - Autonomous Loop Engine**
+- **Autonomous Execution** - Full TDD E2E workflow without manual intervention
+- **Loop Controller Agent** - Check → Spawn → Monitor → Evaluate cycle
+- **MCP Dashboard Server** - Real-time monitoring of execution state
+- **Rate Limiting** - Auto-wait on API limits with countdown
+- **Session Persistence** - Resume interrupted sessions
+
+**v1.6.0 - Ralph Reliability Patterns**
 - **TDD E2E Workflow** - Test-first development with automatic test generation
 - **Ralph Reliability Patterns** - Circuit Breaker, Dual-Gate Exit, Metrics Tracking
 - **Architecture Documentation** - Auto-generated ADRs, C4 diagrams, ERD, Sequence diagrams
