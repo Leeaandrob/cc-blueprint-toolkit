@@ -120,10 +120,26 @@ while not should_exit:
 
     EMIT: f"Starting {current_phase} phase, iteration {loop_state.current_iteration + 1}"
 
+    # Model diversity for QA phase
+    model_param = None
+    if current_phase == "QA":
+        # Use different model than GREEN phase for diversity
+        implementer_model = loop_state.get("green_model", "sonnet")
+        if implementer_model == "opus":
+            model_param = "sonnet"
+        else:
+            model_param = "opus"
+        EMIT: f"QA using model '{model_param}' for diversity (implementer used '{implementer_model}')"
+
     task_result = SPAWN Task(
         subagent_type: agent,
-        prompt: build_agent_prompt(current_phase, loop_state, prp_file)
+        prompt: build_agent_prompt(current_phase, loop_state, prp_file),
+        model: model_param  # Only set for QA phase
     )
+
+    # Track model used for GREEN phase (for QA diversity later)
+    if current_phase == "GREEN":
+        loop_state.green_model = DETECT_CURRENT_MODEL()  # "sonnet" or "opus"
 
     # 2.4 INCREMENT RATE LIMIT COUNTER
     rate_state.hourly.calls_made += 1

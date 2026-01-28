@@ -6,7 +6,6 @@ description: >
   model than implementer for diversity. Emits PRP_PHASE_STATUS with QA metrics
   and APPROVE/REJECT verdict.
 tools: Read, Write, Grep, Glob, Bash, mcp__claude-self-reflect__csr_reflect_on_past, mcp__claude-self-reflect__csr_search_by_concept, mcp__claude-self-reflect__csr_search_narratives, mcp__claude-self-reflect__csr_search_by_file
-model: "{opposite_of_implementer}"
 ---
 
 # Purpose

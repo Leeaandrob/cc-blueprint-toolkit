@@ -10,7 +10,7 @@
 
 The Loop State tracks the autonomous execution loop's progress through TDD phases:
 1. **Iteration tracking** - Current position within each phase
-2. **Phase transitions** - Moving from RED → GREEN → REFACTOR → DOCUMENT
+2. **Phase transitions** - Moving from RED → GREEN → REFACTOR → DOCUMENT → QA
 3. **Status management** - Running, paused, completed, halted states
 4. **Error history** - Track errors for same-error detection
 
@@ -46,6 +46,12 @@ The Loop State tracks the autonomous execution loop's progress through TDD phase
     │  │ DOCUMENT │ ──▶ Generate architecture docs                    │
     │  │    📚    │     Exit: docs >= 3 + has_adr                     │
     │  └────┬─────┘                                                    │
+    │       │ Dual-Gate satisfied                                      │
+    │       ▼                                                          │
+    │  ┌──────────┐                                                    │
+    │  │    QA    │ ──▶ AI reviewing AI with memory                   │
+    │  │    🔍    │     Exit: APPROVE verdict + exit_signal           │
+    │  └────┬─────┘     On REJECT: return to GREEN (max 3)            │
     │       │ Dual-Gate satisfied                                      │
     │       ▼                                                          │
     │   COMPLETED ✅                                                   │
@@ -101,8 +107,9 @@ The Loop State tracks the autonomous execution loop's progress through TDD phase
 | `session_id` | UUID | Unique session identifier |
 | `prp_file` | string | Path to the PRP being executed |
 | `started_at` | ISO-8601 | Session start timestamp |
-| `current_phase` | enum | RED, GREEN, REFACTOR, DOCUMENT |
+| `current_phase` | enum | RED, GREEN, REFACTOR, DOCUMENT, QA |
 | `current_iteration` | integer | Iteration within current phase (0-based) |
+| `green_model` | string | Model used in GREEN phase (for QA diversity) |
 | `last_activity` | ISO-8601 | Last update timestamp |
 | `status` | enum | running, paused, completed, halted |
 | `halt_reason` | string | null | Reason if status is halted |
@@ -187,15 +194,35 @@ REFACTOR_to_DOCUMENT:
     - current_iteration = 0
     - record phase_history.REFACTOR.completed_at
 
-DOCUMENT_to_COMPLETE:
+DOCUMENT_to_QA:
   gate_1: |
     docs_generated >= 3
     AND has_adr == true
   gate_2: exit_signal == true
   action:
     - phases_completed.append("DOCUMENT")
-    - status = "completed"
+    - current_phase = "QA"
+    - current_iteration = 0
     - record phase_history.DOCUMENT.completed_at
+
+QA_to_COMPLETE:
+  gate_1: |
+    blocking_issues == 0
+    AND verdict == "APPROVE"
+  gate_2: exit_signal == true
+  action:
+    - phases_completed.append("QA")
+    - status = "completed"
+    - record phase_history.QA.completed_at
+
+QA_REJECT_to_GREEN:
+  trigger: verdict == "REJECT" AND qa_attempts < 3
+  action:
+    - current_phase = "GREEN"
+    - current_iteration = 0
+    - qa_attempts += 1
+    - record rejection reason
+  note: Per-cycle retry, resets on GREEN success
 ```
 
 ## Iteration Management
@@ -296,8 +323,8 @@ resume_loop:
 def calculate_overall_progress(state: dict) -> int:
     """Calculate overall execution progress percentage."""
 
-    phases = ["RED", "GREEN", "REFACTOR", "DOCUMENT"]
-    phase_weights = {"RED": 15, "GREEN": 50, "REFACTOR": 20, "DOCUMENT": 15}
+    phases = ["RED", "GREEN", "REFACTOR", "DOCUMENT", "QA"]
+    phase_weights = {"RED": 10, "GREEN": 45, "REFACTOR": 15, "DOCUMENT": 15, "QA": 15}
 
     completed_progress = sum(
         phase_weights[p] for p in state["phases_completed"]
@@ -361,7 +388,7 @@ validation:
     required: true
 
   current_phase:
-    enum: [RED, GREEN, REFACTOR, DOCUMENT]
+    enum: [RED, GREEN, REFACTOR, DOCUMENT, QA]
     required: true
 
   current_iteration:
@@ -402,7 +429,8 @@ validation:
 ║ ├── RED:      ✅ Complete (2 iters)     ║
 ║ ├── GREEN:    ⏳ 5/10 iters             ║
 ║ ├── REFACTOR: ⏳ Pending                ║
-║ └── DOCUMENT: ⏳ Pending                ║
+║ ├── DOCUMENT: ⏳ Pending                ║
+║ └── QA:       ⏳ Pending                ║
 ║                                          ║
 ║ Overall:    ████████░░░░░░░░░░░░  40%   ║
 ╚══════════════════════════════════════════╝
