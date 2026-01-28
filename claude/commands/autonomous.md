@@ -6,7 +6,7 @@ allowed-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep, Task
 
 # Autonomous Execution Command
 
-Start autonomous development execution for a PRP file. The loop engine continuously executes TDD phases (RED → GREEN → REFACTOR → DOCUMENT) without human intervention, protected by rate limiting and Circuit Breaker patterns.
+Start autonomous development execution for a PRP file. The loop engine continuously executes TDD phases (RED → GREEN → REFACTOR → DOCUMENT → QA) without human intervention, protected by rate limiting and Circuit Breaker patterns.
 
 ## PRP File: $ARGUMENTS
 
@@ -190,17 +190,31 @@ spawn_controller:
       Starting Phase: {current_phase}
       Starting Iteration: {current_iteration}
 
+      Phase Sequence: RED → GREEN → REFACTOR → DOCUMENT → QA
+
       Follow the loop-controller agent instructions to:
       1. Check rate limits before each iteration
       2. Check Circuit Breaker state
-      3. Spawn appropriate phase agent
+      3. Spawn appropriate phase agent:
+         - RED: bp:tdd-e2e-generator
+         - GREEN: bp:green-implementer
+         - REFACTOR: bp:refactor-agent
+         - DOCUMENT: bp:architecture-docs-generator
+         - QA: bp:qa-agent (uses different model for diversity)
       4. Monitor progress via TaskOutput
       5. Update metrics and Circuit Breaker
       6. Evaluate Dual-Gate exit conditions
       7. Transition phases when conditions met
       8. Emit PRP_PHASE_STATUS after each iteration
 
-      Continue until all phases complete or halt condition.
+      QA Phase Notes:
+      - QA Agent validates with objective checklist (11 criteria)
+      - Memory queries via claude-self-reflect MCP (if available)
+      - Max 3 rejections per GREEN→QA cycle before human escalation
+      - On APPROVE: workflow complete
+      - On REJECT: return to GREEN for fixes
+
+      Continue until all phases complete (including QA APPROVE) or halt condition.
 ```
 
 ## Progress Display
@@ -263,7 +277,8 @@ When all phases complete successfully:
 ║  ├── RED:      ✅ 2 iterations, 10 tests generated          ║
 ║  ├── GREEN:    ✅ 15 iterations, all tests passing          ║
 ║  ├── REFACTOR: ✅ 4 iterations, 6 patterns applied          ║
-║  └── DOCUMENT: ✅ 2 iterations, 5 docs generated            ║
+║  ├── DOCUMENT: ✅ 2 iterations, 5 docs generated            ║
+║  └── QA:       ✅ 1 iteration, APPROVED                     ║
 ║                                                               ║
 ║  Circuit Breaker: No incidents                               ║
 ║  Rate Limit: 87 total API calls                              ║
@@ -358,6 +373,7 @@ action: Auto-wait, then continue
 - `/bp:dashboard` - View current execution status
 - `/bp:execute-prp` - Manual (non-autonomous) PRP execution
 - `/bp:generate-prp` - Create a new PRP document
+- `/bp:ship` - Ship feature after QA approval (branch, commit, PR)
 
 ## Specifications Reference
 
@@ -366,9 +382,12 @@ action: Auto-wait, then continue
 - `claude/lib/loop-state-spec.md` - Loop state schema
 - `claude/lib/circuit-breaker-spec.md` - CB state machine
 - `claude/lib/dual-gate-spec.md` - Exit conditions
+- `claude/lib/qa-checklist.yml` - QA validation criteria
+- `claude/lib/qa-tools-mapping.yml` - Stack detection config
 - `claude/agents/loop-controller.md` - Loop orchestrator
+- `claude/agents/qa-agent.md` - QA validation agent
 
 ---
 
-*Autonomous Execution Command v1.0.0*
-*Ralph-powered continuous development without intervention*
+*Autonomous Execution Command v1.1.0*
+*Ralph-powered continuous development with QA validation*
