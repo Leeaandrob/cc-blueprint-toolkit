@@ -262,6 +262,7 @@ get_no_progress_threshold() {
         GREEN)    echo "2" ;;  # Stricter
         REFACTOR) echo "5" ;;
         DOCUMENT) echo "3" ;;
+        QA)       echo "3" ;;  # QA phase threshold
         *)        echo "3" ;;
     esac
 }
@@ -275,6 +276,7 @@ get_same_error_threshold() {
         GREEN)    echo "3" ;;  # Stricter
         REFACTOR) echo "5" ;;
         DOCUMENT) echo "5" ;;
+        QA)       echo "3" ;;  # QA phase threshold
         *)        echo "5" ;;
     esac
 }
@@ -419,4 +421,180 @@ count_status_blocks() {
     else
         echo "0"
     fi
+}
+
+# =============================================================================
+# QA PHASE SPECIFIC FUNCTIONS
+# =============================================================================
+
+# Calculate QA verdict based on blocking issues
+calculate_qa_verdict() {
+    local blocking_failed="$1"
+    local warnings="$2"
+
+    if [[ "$blocking_failed" -gt 0 ]]; then
+        echo "REJECT"
+    else
+        echo "APPROVE"
+    fi
+}
+
+# Evaluate Gate 1 for QA phase
+evaluate_qa_gate1() {
+    local blocking_issues="$1"
+    local verdict="$2"
+
+    if [[ "$blocking_issues" -eq 0 && "$verdict" == "APPROVE" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Detect progress for QA phase
+detect_qa_progress() {
+    local current_passing="$1"
+    local last_passing="$2"
+    local current_blocking="$3"
+    local last_blocking="$4"
+
+    if [[ "$current_passing" -gt "$last_passing" ]] || \
+       [[ "$current_blocking" -lt "$last_blocking" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Get QA retry action based on attempt and verdict
+get_qa_retry_action() {
+    local attempt="$1"
+    local verdict="$2"
+
+    if [[ "$verdict" == "APPROVE" ]]; then
+        echo "SHIP"
+    elif [[ "$attempt" -ge 3 ]]; then
+        echo "ESCALATE"
+    else
+        echo "GREEN"
+    fi
+}
+
+# Get QA model based on implementer model (model diversity)
+get_qa_model() {
+    local implementer_model="$1"
+
+    case "$implementer_model" in
+        opus)   echo "sonnet" ;;
+        sonnet) echo "opus" ;;
+        *)      echo "sonnet" ;;  # default to sonnet for diversity
+    esac
+}
+
+# Generate QA-specific PRP_PHASE_STATUS block
+generate_qa_status_block() {
+    local status="$1"
+    local iteration="$2"
+    local progress_percent="$3"
+    local checks_total="$4"
+    local checks_passing="$5"
+    local checks_failing="$6"
+    local blocking_issues="$7"
+    local warning_issues="$8"
+    local queries_executed="$9"
+    local bugs_found="${10}"
+    local patterns_found="${11}"
+    local files_reviewed="${12}"
+    local cb_state="${13}"
+    local cb_no_progress="${14}"
+    local gate1="${15}"
+    local gate2="${16}"
+    local exit_signal="${17}"
+    local recommendation="${18}"
+    local verdict="${19:-}"
+    local attempt="${iteration:-1}"
+
+    local can_exit=$(evaluate_dual_gate "$gate1" "$gate2")
+
+    cat <<EOF
+---PRP_PHASE_STATUS---
+TIMESTAMP: $(date -Iseconds)
+PHASE: QA
+STATUS: $status
+ITERATION: $iteration
+PROGRESS_PERCENT: $progress_percent
+
+QA_METRICS:
+  CHECKS_TOTAL: $checks_total
+  CHECKS_PASSING: $checks_passing
+  CHECKS_FAILING: $checks_failing
+  BLOCKING_ISSUES: $blocking_issues
+  WARNING_ISSUES: $warning_issues
+
+MEMORY_CONTEXT:
+  QUERIES_EXECUTED: $queries_executed
+  HISTORICAL_BUGS_FOUND: $bugs_found
+  PATTERNS_IDENTIFIED: $patterns_found
+  FILE_HISTORIES: $files_reviewed
+
+VERDICT: ${verdict:-PENDING}
+ATTEMPT: $attempt
+
+CIRCUIT_BREAKER:
+  STATE: $cb_state
+  NO_PROGRESS_COUNT: $cb_no_progress
+
+DUAL_GATE:
+  GATE_1: $gate1
+  GATE_2: $gate2
+  CAN_EXIT: $can_exit
+
+EXIT_SIGNAL: $exit_signal
+RECOMMENDATION: $recommendation
+---END_PRP_PHASE_STATUS---
+EOF
+}
+
+# Initialize QA state file
+init_qa_state() {
+    local attempt="${1:-1}"
+    local last_verdict="${2:-}"
+
+    cat > .prp-session/qa-state.json <<EOF
+{
+    "attempt": $attempt,
+    "last_verdict": "$last_verdict",
+    "report_path": null,
+    "memory_context": {
+        "bugs_found": 0,
+        "patterns_found": 0,
+        "adrs_found": 0,
+        "files_reviewed": 0
+    }
+}
+EOF
+}
+
+# Get QA attempt count
+get_qa_attempt() {
+    if [[ -f .prp-session/qa-state.json ]]; then
+        jq -r '.attempt' .prp-session/qa-state.json
+    else
+        echo "1"
+    fi
+}
+
+# Increment QA attempt
+increment_qa_attempt() {
+    local temp_file=$(mktemp)
+    jq '.attempt += 1' .prp-session/qa-state.json > "$temp_file"
+    mv "$temp_file" .prp-session/qa-state.json
+}
+
+# Update QA verdict
+update_qa_verdict() {
+    local verdict="$1"
+    local temp_file=$(mktemp)
+    jq --arg verdict "$verdict" '.last_verdict = $verdict' .prp-session/qa-state.json > "$temp_file"
+    mv "$temp_file" .prp-session/qa-state.json
 }
